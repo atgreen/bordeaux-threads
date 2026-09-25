@@ -1,7 +1,36 @@
-;;;; Native synchronization for TorCL. Thread lifecycle integration is pending;
-;;;; this file is not selected by ASDF until the complete backend is validated.
+;;;; Native threads and synchronization for TorCL. This file remains outside
+;;;; the ASDF implementation selector until the remaining interruption and
+;;;; weak-table requirements are validated.
 
 (in-package #:bordeaux-threads)
+
+(deftype thread () 'fixnum)
+
+(defun %make-thread (function name)
+  (torcl-thread:make-thread function :name name))
+
+(defun current-thread ()
+  (torcl-thread:current-thread))
+
+(defun threadp (object)
+  ;; TorCL's temporary native-thread ABI is a fixnum handle. A first-class
+  ;; descriptor will eventually make this predicate narrower.
+  (typep object 'fixnum))
+
+(defun thread-name (thread)
+  (torcl-thread:thread-name thread))
+
+(defun thread-yield ()
+  (torcl-thread:thread-yield))
+
+(defun all-threads ()
+  (torcl-thread:all-threads))
+
+(defun thread-alive-p (thread)
+  (torcl-thread:thread-alive-p thread))
+
+(defun join-thread (thread)
+  (torcl-thread:join-thread thread))
 
 (deftype lock () 'torcl-thread:mutex)
 (deftype recursive-lock () 'torcl-thread:mutex)

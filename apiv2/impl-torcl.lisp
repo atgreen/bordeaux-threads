@@ -1,7 +1,30 @@
-;;;; Native synchronization SPI for the in-progress TorCL backend.
-;;;; ASDF activation waits for the thread/atomic/weak-table prerequisites.
+;;;; Native thread and synchronization SPI for the in-progress TorCL backend.
+;;;; ASDF activation waits for interruption and weak-table prerequisites.
 
 (in-package :bordeaux-threads-2)
+
+(deftype native-thread () 'fixnum)
+
+(defun %make-thread (function name)
+  (torcl-thread:make-thread function :name name))
+
+(defun %current-thread ()
+  (torcl-thread:current-thread))
+
+(defun %thread-name (thread)
+  (torcl-thread:thread-name thread))
+
+(defun %join-thread (thread)
+  (torcl-thread:join-thread thread))
+
+(defun %thread-yield ()
+  (torcl-thread:thread-yield))
+
+(defun %all-threads ()
+  (torcl-thread:all-threads))
+
+(defun %thread-alive-p (thread)
+  (torcl-thread:thread-alive-p thread))
 
 (deftype native-lock () 'torcl-thread:mutex)
 (deftype native-recursive-lock () 'torcl-thread:mutex)

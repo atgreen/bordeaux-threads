@@ -5,16 +5,19 @@ implementation on TorCL. Its ASDF feature guard deliberately still rejects
 TorCL; the backend files are not selected until the complete port is verified.
 
 The `apiv1/impl-torcl.lisp` and `apiv2/impl-torcl.lisp` files provide native
-mutex, recursive-lock, and condition-variable adapters. They delegate to
-`TORCL-THREAD`, including real contention, timeout, and wakeup handling.
+thread-lifecycle, mutex, recursive-lock, and condition-variable adapters. They
+delegate to `TORCL-THREAD`, including retained names, truthful liveness and
+enumeration, yielding, joins, real contention, timeout, and wakeup handling.
 They do not implement no-op synchronization, replace the portable dynamic
-binding wrapper, or weaken weak-table semantics.
+binding wrapper, or weaken weak-table semantics. Lifecycle support requires
+TorCL commit `51f2204` or later; TorCL's current native-thread ABI uses fixnum
+handles pending first-class thread descriptors.
 
 `test/torcl-native.lisp` exercises the upstream v1 API files and v2 native
 SPI using actual TorCL threads. Load it with Alexandria and global-vars
 available through ASDF. This focused test does not load the full system;
-passing it does not establish complete thread or timeout support. Existing
-non-TorCL system selection is unchanged.
+passing it does not establish interruption, destruction, or weak-table support.
+Existing non-TorCL system selection is unchanged.
 
 `test/torcl-wrappers.lisp` adds the upstream v2 CLOS lock wrappers and portable
 semaphores: cross-thread accessors and contention, permit accounting, timeouts,
@@ -42,5 +45,6 @@ the mutex-backed counter implementation, not the still-incomplete full system.
 
 Integration work is tracked in the TorCL repository's Beads issues
 `bliss-59qu` and `bliss-1wz7`; global definitions and named FASL dispatch are
-tracked in `bliss-nubv` and `bliss-4tkp`. Wrapper/semaphore and atomic counter
-validation are tracked in `bliss-aen0` and `bliss-0ext`.
+tracked in `bliss-nubv` and `bliss-4tkp`. Wrapper/semaphore, atomic counter,
+and lifecycle validation are tracked in `bliss-aen0`, `bliss-0ext`, and
+`bliss-94kq`.
