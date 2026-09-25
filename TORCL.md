@@ -34,6 +34,13 @@ global-vars registered in ASDF:
 (load "test/torcl-atomics.lisp")
 ```
 
+For now, run the counter test with `TORCL_FORCE_TIER=t0`. Default tiering
+intermittently fails in the counter constructor with an invalid destructuring
+pattern, including on TorCL `93f1af5` (runtime issue `bliss-ozdg`). A single
+successful default-tier run does not establish support. The T0 test verifies
+the mutex-backed counter implementation; it is not a workaround that makes the
+full system ready for normal use.
+
 Integration work is tracked in the TorCL repository's Beads issues
 `bliss-59qu` and `bliss-1wz7`; global definitions and named FASL dispatch are
 tracked in `bliss-nubv` and `bliss-4tkp`. Wrapper/semaphore and atomic counter
