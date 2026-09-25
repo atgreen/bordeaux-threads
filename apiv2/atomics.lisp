@@ -67,25 +67,25 @@ The counter is a machine word: 32/64 bits depending on CPU."
 
   #+(or allegro ccl clasp ecl genera lispworks)
   (cell (make-array 1 :element-type t))
-  #+(or clisp cmu sbcl)
+  #+(or clisp cmu sbcl torcl)
   (cell 0 :type %atomic-integer-value)
-  #+clisp
+  #+(or clisp torcl)
   (%lock (%make-lock nil) :type native-lock))
 
 (defmethod print-object ((aint atomic-integer) stream)
   (print-unreadable-object (aint stream :type t :identity t)
     (format stream "~S" (atomic-integer-value aint))))
 
-#-(or allegro ccl clasp cmu clisp ecl genera lispworks sbcl)
+#-(or allegro ccl clasp cmu clisp ecl genera lispworks sbcl torcl)
 (mark-not-implemented 'make-atomic-integer)
 (defun make-atomic-integer (&key (value 0))
   "Create an `ATOMIC-INTEGER` with initial value `VALUE`"
   (check-type value %atomic-integer-value)
-  #+(or allegro ccl clasp clisp cmu ecl genera lispworks sbcl)
+  #+(or allegro ccl clasp clisp cmu ecl genera lispworks sbcl torcl)
   (let ((aint (%make-atomic-integer)))
     (setf (atomic-integer-value aint) value)
     aint)
-  #-(or allegro ccl clasp clisp cmu ecl genera lispworks sbcl)
+  #-(or allegro ccl clasp clisp cmu ecl genera lispworks sbcl torcl)
   (signal-not-implemented 'make-atomic-integer))
 
 (defun atomic-integer-compare-and-swap (atomic-integer old new)
@@ -96,11 +96,11 @@ Returns T if the replacement was successful, otherwise NIL."
   (declare (type atomic-integer atomic-integer)
            (type %atomic-integer-value old new)
            (optimize (safety 0) (speed 3)))
-  #-clisp
+  #-(or clisp torcl)
   (atomic-cas #-(or cmu sbcl) (svref (atomic-integer-cell atomic-integer) 0)
               #+(or cmu sbcl) (atomic-integer-cell atomic-integer)
               old new)
-  #+clisp
+  #+(or clisp torcl)
   (%with-lock ((atomic-integer-%lock atomic-integer) nil)
     (cond
       ((= old (slot-value atomic-integer 'cell))
@@ -115,11 +115,11 @@ Returns the new value of `ATOMIC-INTEGER`."
   (declare (type atomic-integer atomic-integer)
            (type %atomic-integer-value delta)
            (optimize (safety 0) (speed 3)))
-  #-clisp
+  #-(or clisp torcl)
   (atomic-decf #-(or cmu sbcl) (svref (atomic-integer-cell atomic-integer) 0)
                #+(or cmu sbcl) (atomic-integer-cell atomic-integer)
                delta)
-  #+clisp
+  #+(or clisp torcl)
   (%with-lock ((atomic-integer-%lock atomic-integer) nil)
     (decf (atomic-integer-cell atomic-integer) delta)))
 
@@ -130,11 +130,11 @@ Returns the new value of `ATOMIC-INTEGER`."
   (declare (type atomic-integer atomic-integer)
            (type %atomic-integer-value delta)
            (optimize (safety 0) (speed 3)))
-  #-clisp
+  #-(or clisp torcl)
   (atomic-incf #-(or cmu sbcl) (svref (atomic-integer-cell atomic-integer) 0)
                #+(or cmu sbcl) (atomic-integer-cell atomic-integer)
                delta)
-  #+clisp
+  #+(or clisp torcl)
   (%with-lock ((atomic-integer-%lock atomic-integer) nil)
     (incf (atomic-integer-cell atomic-integer) delta)))
 
@@ -142,11 +142,11 @@ Returns the new value of `ATOMIC-INTEGER`."
   "Returns the current value of `ATOMIC-INTEGER`."
   (declare (type atomic-integer atomic-integer)
            (optimize (safety 0) (speed 3)))
-  #-clisp
+  #-(or clisp torcl)
   (progn
     #-(or cmu sbcl) (svref (atomic-integer-cell atomic-integer) 0)
     #+(or cmu sbcl) (atomic-integer-cell atomic-integer))
-  #+clisp
+  #+(or clisp torcl)
   (%with-lock ((atomic-integer-%lock atomic-integer) nil)
     (atomic-integer-cell atomic-integer)))
 
@@ -154,10 +154,10 @@ Returns the new value of `ATOMIC-INTEGER`."
   (declare (type atomic-integer atomic-integer)
            (type %atomic-integer-value newval)
            (optimize (safety 0) (speed 3)))
-  #-clisp
+  #-(or clisp torcl)
   (setf #-(or cmu sbcl) (svref (atomic-integer-cell atomic-integer) 0)
         #+(or cmu sbcl) (atomic-integer-cell atomic-integer)
         newval)
-  #+clisp
+  #+(or clisp torcl)
   (%with-lock ((atomic-integer-%lock atomic-integer) nil)
     (setf (atomic-integer-cell atomic-integer) newval)))

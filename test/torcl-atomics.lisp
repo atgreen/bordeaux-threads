@@ -1,0 +1,36 @@
+;;;; BT2 atomic integers using the real TorCL native synchronization backend.
+(load (merge-pathnames "torcl-wrappers.lisp" *load-truename*))
+(load (merge-pathnames "apiv2/atomics.lisp" *torcl-test-root*))
+(assert (bt2::implemented-p 'bt2:make-atomic-integer))
+
+(let ((counter (bt2:make-atomic-integer :value 4)))
+  (assert (= 4 (bt2:atomic-integer-value counter)))
+  (assert (null (bt2:atomic-integer-compare-and-swap counter 0 100)))
+  (assert (= 4 (bt2:atomic-integer-value counter)))
+  (assert (bt2:atomic-integer-compare-and-swap counter 4 7))
+  (assert (= 12 (bt2:atomic-integer-incf counter 5)))
+  (assert (= 11 (bt2:atomic-integer-decf counter)))
+  (let ((large (1- (ash 1 64))))
+    (assert (= large (setf (bt2:atomic-integer-value counter) large)))
+    (assert (= large (bt2:atomic-integer-value counter))))
+  (setf (bt2:atomic-integer-value counter) 0)
+  (let ((workers nil))
+    (dotimes (i 4)
+      (push (torcl-thread:make-thread
+             (lambda () (bt2:atomic-integer-compare-and-swap counter 0 1)))
+            workers))
+    (assert (= 1 (count t (mapcar #'torcl-thread:join-thread workers))))))
+(format t "TORCL-BT-V2-ATOMIC-VALUES-OK~%")
+
+(let ((counter (bt2:make-atomic-integer :value 1000000))
+      (workers nil))
+  (dotimes (i 2)
+    (push (torcl-thread:make-thread
+           (lambda ()
+             (dotimes (n 100) (bt2:atomic-integer-incf counter)))) workers)
+    (push (torcl-thread:make-thread
+           (lambda ()
+             (dotimes (n 100) (bt2:atomic-integer-decf counter)))) workers))
+  (mapc #'torcl-thread:join-thread workers)
+  (assert (= 1000000 (bt2:atomic-integer-value counter))))
+(format t "TORCL-BT-V2-ATOMIC-CONCURRENCY-OK~%")
