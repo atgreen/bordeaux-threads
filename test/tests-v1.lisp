@@ -94,10 +94,15 @@ Distributed under the MIT license (see LICENSE file)
 (test default-special-bindings
   (locally (declare (special *a* *c*))
     (let* ((the-as 50) (the-bs 150) (*b* 42)
+           (counter-lock (make-lock "special binding counters"))
            some-a some-b some-other-a some-other-b
            (*default-special-bindings*
-            `((*a* . (funcall ,(lambda () (incf the-as))))
-              (*b* . (funcall ,(lambda () (incf the-bs))))
+            ;; Initial forms may run concurrently in the new threads.
+            ;; Test binding isolation, not unsynchronized INCF behavior.
+            `((*a* . (funcall ,(lambda ()
+                                (with-lock-held (counter-lock) (incf the-as)))))
+              (*b* . (funcall ,(lambda ()
+                                (with-lock-held (counter-lock) (incf the-bs)))))
               ,@*default-special-bindings*))
            (threads (list (make-thread
                            (lambda ()
