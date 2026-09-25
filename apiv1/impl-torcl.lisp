@@ -1,6 +1,4 @@
-;;;; Native threads and synchronization for TorCL. This file remains outside
-;;;; the ASDF implementation selector until the remaining interruption and
-;;;; weak-table requirements are validated.
+;;;; Native threads and synchronization for TorCL.
 
 (in-package #:bordeaux-threads)
 
@@ -31,6 +29,12 @@
 
 (defun join-thread (thread)
   (torcl-thread:join-thread thread))
+
+;; TorCL does not yet support asynchronous interruption. Override the portable
+;; helper so it fails before creating a timer thread that it cannot stop.
+(defmacro with-timeout ((timeout) &body body)
+  (declare (ignore timeout body))
+  `(error (make-threading-support-error)))
 
 (deftype lock () 'torcl-thread:mutex)
 (deftype recursive-lock () 'torcl-thread:mutex)
@@ -74,3 +78,5 @@
 
 (defun condition-notify (condition-variable)
   (torcl-thread:condition-notify condition-variable))
+
+(mark-supported)
