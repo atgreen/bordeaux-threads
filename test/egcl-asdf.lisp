@@ -1,4 +1,4 @@
-;;;; End-to-end ASDF activation test for the TorCL backend.
+;;;; End-to-end ASDF activation test for the EGCL backend.
 
 (require :asdf)
 (asdf:load-asd
@@ -25,22 +25,22 @@
        (bordeaux-threads-2:with-timeout (0) :unexpected)
        nil)
    (bordeaux-threads-2:not-implemented () t)))
-(format t "TORCL-BT-ASDF-FLAGS-OK~%")
+(format t "EGCL-BT-ASDF-FLAGS-OK~%")
 
 (let* ((ready (bordeaux-threads-2:make-semaphore :count 0))
        (release (bordeaux-threads-2:make-semaphore :count 0))
        (thread
          (progn
-          (format t "TORCL-BT-ASDF-MAKING-THREAD~%")
+          (format t "EGCL-BT-ASDF-MAKING-THREAD~%")
          (bordeaux-threads-2:make-thread
           (lambda ()
             (bordeaux-threads-2:signal-semaphore ready)
             (assert (bordeaux-threads-2:wait-on-semaphore release :timeout 10))
             (values 17 19))
-          :name "TorCL ASDF worker"))))
-  (format t "TORCL-BT-ASDF-THREAD-MADE~%")
+          :name "EGCL ASDF worker"))))
+  (format t "EGCL-BT-ASDF-THREAD-MADE~%")
   (assert (bordeaux-threads-2:wait-on-semaphore ready :timeout 10))
-  (assert (string= "TorCL ASDF worker"
+  (assert (string= "EGCL ASDF worker"
                    (bordeaux-threads-2:thread-name thread)))
   (assert (bordeaux-threads-2:thread-alive-p thread))
   (assert (member thread (bordeaux-threads-2:all-threads)))
@@ -54,4 +54,4 @@
    (null (gethash (bordeaux-threads-2::thread-native-thread thread)
                   bordeaux-threads-2::.known-threads.))))
 
-(format t "TORCL-BT-ASDF-LOAD-OK~%")
+(format t "EGCL-BT-ASDF-LOAD-OK~%")

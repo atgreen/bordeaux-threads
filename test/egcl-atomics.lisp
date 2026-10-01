@@ -1,6 +1,6 @@
-;;;; BT2 atomic integers using the real TorCL native synchronization backend.
-(load (merge-pathnames "torcl-wrappers.lisp" *load-truename*))
-(load (merge-pathnames "apiv2/atomics.lisp" *torcl-test-root*))
+;;;; BT2 atomic integers using the real EGCL native synchronization backend.
+(load (merge-pathnames "egcl-wrappers.lisp" *load-truename*))
+(load (merge-pathnames "apiv2/atomics.lisp" *egcl-test-root*))
 (assert (bt2::implemented-p 'bt2:make-atomic-integer))
 
 (let ((counter (bt2:make-atomic-integer :value 4)))
@@ -16,21 +16,21 @@
   (setf (bt2:atomic-integer-value counter) 0)
   (let ((workers nil))
     (dotimes (i 4)
-      (push (torcl-thread:make-thread
+      (push (egcl-thread:make-thread
              (lambda () (bt2:atomic-integer-compare-and-swap counter 0 1)))
             workers))
-    (assert (= 1 (count t (mapcar #'torcl-thread:join-thread workers))))))
-(format t "TORCL-BT-V2-ATOMIC-VALUES-OK~%")
+    (assert (= 1 (count t (mapcar #'egcl-thread:join-thread workers))))))
+(format t "EGCL-BT-V2-ATOMIC-VALUES-OK~%")
 
 (let ((counter (bt2:make-atomic-integer :value 1000000))
       (workers nil))
   (dotimes (i 2)
-    (push (torcl-thread:make-thread
+    (push (egcl-thread:make-thread
            (lambda ()
              (dotimes (n 100) (bt2:atomic-integer-incf counter)))) workers)
-    (push (torcl-thread:make-thread
+    (push (egcl-thread:make-thread
            (lambda ()
              (dotimes (n 100) (bt2:atomic-integer-decf counter)))) workers))
-  (mapc #'torcl-thread:join-thread workers)
+  (mapc #'egcl-thread:join-thread workers)
   (assert (= 1000000 (bt2:atomic-integer-value counter))))
-(format t "TORCL-BT-V2-ATOMIC-CONCURRENCY-OK~%")
+(format t "EGCL-BT-V2-ATOMIC-CONCURRENCY-OK~%")

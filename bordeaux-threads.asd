@@ -20,7 +20,7 @@
         (and digitool ccl-5.1)
         (and sbcl sb-thread)
         scl
-        torcl)
+        egcl)
   (pushnew :thread-support *features*))
 
 #-thread-support
@@ -31,9 +31,9 @@
   :licence "MIT"
   :description "Bordeaux Threads makes writing portable multi-threaded apps simple."
   :version (:read-file-form "version.sexp")
-  ;; TorCL's wrapper registry has explicit lifecycle cleanup because its native
+  ;; EGCL's wrapper registry has explicit lifecycle cleanup because its native
   ;; thread handles are immediate values; no weak-reference dependency is used.
-  :depends-on (:alexandria :global-vars :trivial-features #-torcl :trivial-garbage
+  :depends-on (:alexandria :global-vars :trivial-features #-egcl :trivial-garbage
                            #+(and allegro (version>= 9)) (:require "smputil")
                            #+(and allegro (not (version>= 9))) (:require "process")
                            (:feature :corman (:require "threads")))
@@ -59,7 +59,7 @@
                          (:file "impl-mcl" :if-feature :digitool)
                          (:file "impl-sbcl" :if-feature :sbcl)
                          (:file "impl-scl" :if-feature :scl)
-                         (:file "impl-torcl" :if-feature :torcl)
+                         (:file "impl-egcl" :if-feature :egcl)
                          (:file "impl-lispworks-condition-variables" :if-feature (:and :lispworks
                                                                                        (:or :lispworks4 :lispworks5)))
                          (:file "condition-variables" :if-feature :digitool)
@@ -87,7 +87,7 @@
                          (:file "impl-mcl" :if-feature :digitool)
                          (:file "impl-sbcl" :if-feature :sbcl)
                          (:file "impl-scl" :if-feature :scl)
-                         (:file "impl-torcl" :if-feature :torcl)
+                         (:file "impl-egcl" :if-feature :egcl)
                          (:file "atomics" :if-feature (:not :abcl))
                          (:file "atomics-java" :if-feature :abcl)
                          (:file "api-locks")

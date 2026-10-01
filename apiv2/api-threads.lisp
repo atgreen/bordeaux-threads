@@ -24,12 +24,12 @@
   (make-lock :name "known-threads-lock"))
 
 (define-global-var* .known-threads.
-  ;; TorCL's current native-thread handles are immediate fixnums, so a weak-key
+  ;; EGCL's current native-thread handles are immediate fixnums, so a weak-key
   ;; table cannot express their lifetime. The thread wrapper removes its entry
   ;; explicitly on exit below, preserving bounded registry lifetime without
   ;; weakening trivial-garbage's semantics globally.
-  #+torcl (make-hash-table)
-  #-torcl
+  #+egcl (make-hash-table)
+  #-egcl
   (trivial-garbage:make-weak-hash-table #-genera :weakness #-genera :key))
 
 (define-global-var* .thread-counter. -1)
@@ -132,7 +132,7 @@ FUNCTION."
     (named-lambda %establish-dynamic-env-wrapper ()
       (progv specials values
         (with-slots (%lock %return-values %exit-condition
-                     #+(or genera torcl) native-thread)
+                     #+(or genera egcl) native-thread)
             thread
           (flet ((record-condition (c)
                    (with-lock-held (%lock)
@@ -157,11 +157,11 @@ FUNCTION."
                      (handler-bind
                          ((condition #'record-condition))
                        (values-list (run-function))))
-              ;; Genera has no weak-key tables. TorCL currently represents a
+              ;; Genera has no weak-key tables. EGCL currently represents a
               ;; native thread as an immediate handle, which cannot be weakly
               ;; referenced. Both therefore remove the registry entry exactly
               ;; when the native thread exits.
-              #+(or genera torcl)
+              #+(or genera egcl)
               (remove-thread-wrapper native-thread))))))))
 
 
